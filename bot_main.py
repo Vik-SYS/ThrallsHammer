@@ -50,4 +50,26 @@ async def guildroster(interaction: discord.Interaction):
     except Exception as e:
         await interaction.followup.send(f"Failed to grab Guild Roster.\n```\n{e}\n```")
 
+@bot.tree.command(name="affixes", description="Get this week's Mythic+ dungeon affixes")
+async def affixes(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        data = await get_weekly_affixes()
+        affix_list = data["affix_details"]
+
+        embed = discord.Embed(
+            title="This week's Mythic+ affixes",
+            color=discord.Color.teal()
+        )
+
+        for affix in affix_list:
+            embed.add_field(name-affix["name"], value=affix["description"],inline=False)
+
+        await interaction.followup.send(embed=embed)
+
+    except Exception as e:
+        await interaction.followup.send(f"Failed to get affixes:\n```\n{e}\n```")
+
+
         bot.run("YOUR DISCORD TOKEN HERE")
