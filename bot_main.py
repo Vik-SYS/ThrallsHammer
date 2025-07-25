@@ -2,12 +2,12 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 import asyncio
+from blizzard_api import get_guild_roster
+from raider_io import get_weekly_affixes
+from raider_io import get_mythic_plus_profile
 
-from blizzard_api import get_guild_roster #<--- This is the API function
-
-  # your guild and realm info will go here
-GUILD_REALM = "greymane"
-GUILD_NAME = "South of Heaven"
+GUILD_REALM = "guild realm here"
+GUILD_NAME = "guild name here"
 
 intents = discord.Intents.default()
 bot  = commands.Bot(command_prefix="!", intents=intents)
@@ -72,4 +72,33 @@ async def affixes(interaction: discord.Interaction):
         await interaction.followup.send(f"Failed to get affixes:\n```\n{e}\n```")
 
 
+@bot.tree.command(name="mythicplus", description="Check a player's Raider.IO score and best runs")
+@app_commands.describe(name="Character name", realm="Realm")
+async def mythicplus(interaction: discord.Interaction, name: str, realm: str):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        profile = await get_mythic_plus_profile(name,realm)
+
+        embed = discord.Embed(
+            title=f"{profile['name']} - {profile['active_spec_name']} {profile['class']}",
+            description=f"Raider.IO score: **{profile}['mythic_plus_scores]['all']}**",
+            color=discord.Color.blurple()
+
+        )
+        embed.set_thumbnail(url=profile.get("thumbnail_url", ""))
+
+        for run in profile.get("mythic_plus)best_runs", [])[:3]:
+            embed.add_field(
+                name=f"{run['dungeon']} +{run['mythic_level']}",
+                value=f"Time: {run['clear_time_ms'] // 60000}min\nAffixes: {', '.join(run['affixes'])}",
+                inline=False
+            )
+
+        await interaction.followup.send(embed=embed)
+
+    except Exception as e:
+        await interaction.followup.send(f"Could not get profile:\n```\n{e}\n```")
+
+        
         bot.run("YOUR DISCORD TOKEN HERE")
