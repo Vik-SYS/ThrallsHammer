@@ -100,5 +100,5 @@ async def mythicplus(interaction: discord.Interaction, name: str, realm: str):
     except Exception as e:
         await interaction.followup.send(f"Could not get profile:\n```\n{e}\n```")
 
-        
+
         bot.run("YOUR DISCORD TOKEN HERE")
