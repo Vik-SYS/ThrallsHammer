@@ -100,5 +100,63 @@ async def mythicplus(interaction: discord.Interaction, name: str, realm: str):
     except Exception as e:
         await interaction.followup.send(f"Could not get profile:\n```\n{e}\n```")
 
+@bot.event
+async def on_ready():
+    print(f"Bot is ready. Logged in as {bot.user}")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} command(s)")
+    except Exception as e:
+        print(f"Failed to sync commands: {e}")
+
+    bot.loop.create_task(check_for_new_runs())
+
+async def check_for_new_runs():
+    await bot.wait_until_ready()
+    channel = discord.utils.get(bot.get_all_channels(), name="mythic-plus")
+    if not channel:
+        print("'mythic-plus' channel not found!")
+        return
+
+    print("Starting M+ run monitor...")
+    while not bot.is_closed():
+        try:
+            roster_data = await get_guild_roster(GUILD_REALM, GUILD_NAME)
+            members = roster_data.get("members", [])
+            for member in members:
+                char = member["character"]
+                name = char["name"]
+                realm = char["realm"]["slug"]
+
+                try:
+                    profile = await get_mythic_plus_profile(name, realm)
+                    best_runs = profile.get("mythic_plus_best_runs", [])
+
+                    for run in best_runs:
+                        run_id = (name, run["dungeon"], run["completed_at"])
+                        if run_id not in posted_runs:
+                            posted_runs.add(run_id)
+
+                            embed = discord.Embed(
+                                title=f"{name} completed {run['dungeon']} +{run['mythic_level']}",
+                                description=f"🎉 {profile['active_spec_name']} {profile['class']} from {realm.capitalize()}",
+                                color=discord.Color.green()
+                            )
+                            embed.add_field(name="Score", value=profile['mythic_plus_scores']['all'],inline=True)
+                            embed.add_field(name="Time", value=run['completed_at'].split("T")[0], inline=True)
+                            embed.add_field(name="Affixes", value=", ".join(a["name"] for a in run["affixes"]),inline=False)
+                            embed.set_thumbnail(url=profile.get("thumbnail_url", ""))
+                            await channel.send(embed=embed)
+
+                            await asyncio.sleep(1)
+
+                except Exception as e:
+                    print(f"Failed to fetch M+ for {name}: {e}")
+
+            await asyncio.sleep(300)  # Wait 5 minutes between scans
+
+                except Exception as err:
+                print(f"Error in background task: {err}")
+                await asyncio.sleep(60)
 
         bot.run("YOUR DISCORD TOKEN HERE")
