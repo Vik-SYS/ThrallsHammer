@@ -28,3 +28,41 @@ async def get_bnet_token():
         async with session.post(TOKEN_URL, headers=headers, data=data) as resp:
             response = await resp.json()
             return response["access_token"]
+
+async def get_guild_roster(realm_slug, guild_name):
+    token = await get_bnet_token()
+    namespace = f"https://{BNET_REGION}.api.blizzard.com/data/wow/guild/{realm_slug}/{guild_name}/roster"
+
+    params = {
+        "namespace":namespace,
+        "locale":LOCALE,
+        "access_token":token,
+
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            if resp.status == 200:
+                return await resp.json()
+            else:
+                error = await resp.text()
+                raise Exception(f"Failed to get roster: {resp.status}\n{error}")
+
+async def get_guild_achievements(realm_slug, guild_name):
+    token = await get_bnet_token()
+    namespace = f"profile--{BNET_REGION}"
+    url = f"https://{BNET_REGION}.api.blizzard.com/data/wow/guild/{realm_slug}/achievements"
+
+    params - {
+        "namespace": namespace,
+        "locale": LOCALE,
+        "access_token": token
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as resp:
+            if resp.status == 200:
+                return await resp.json()
+        else:
+            error = await resp.text()
+            raise Exception(f"Failed to get achievements: {resp.status}\n{error}")
