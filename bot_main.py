@@ -13,14 +13,9 @@ GUILD_NAME = "guild name here"
 intents = discord.Intents.default()
 bot  = commands.Bot(command_prefix="!", intents=intents)
 
-@bot.event
-async def on_ready():
-    print(f"Bot is running. Logged in as {bot.user}")
-    try:
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s)")
-    except Exception as e:
-        print(f"Failed to sync command(s): {e}")
+
+posted_runs = set()  #Storage (char_name, dungeon, timestamp)
+
 
 @bot.tree.command(name="guildroster", description="Show Guild Roster")
 async def guildroster(interaction: discord.Interaction):
