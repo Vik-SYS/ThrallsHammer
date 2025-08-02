@@ -13,6 +13,9 @@ GUILD_NAME = "guild name here"
 intents = discord.Intents.default()
 bot  = commands.Bot(command_prefix="!", intents=intents)
 
+
+posted_runs = set()  #Storage (char_name, dungeon, timestamp)
+
 @bot.event
 async def on_ready():
     print(f"Bot is running. Logged in as {bot.user}")
