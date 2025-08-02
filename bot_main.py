@@ -104,14 +104,6 @@ async def mythicplus(interaction: discord.Interaction, name: str, realm: str):
     except Exception as e:
         await interaction.followup.send(f"Could not get profile:\n```\n{e}\n```")
 
-@bot.event
-async def on_ready():
-    print(f"Bot is ready. Logged in as {bot.user}")
-    try:
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} command(s)")
-    except Exception as e:
-        print(f"Failed to sync commands: {e}")
 
     bot.loop.create_task(check_for_new_runs())
 
